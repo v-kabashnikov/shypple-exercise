@@ -11,13 +11,24 @@ module Sailings
     end
 
     def call
-      if params_valid?
-        sailings, rates, exchange_rates = MapReduceService.call
-        converted_rates = ConverterService.new(exchange_rates).to_usd(rates, sailings)
-        perform_search(sailings, converted_rates)
-      else
-        @errors << 'Invalid search parameters'
-      end
+      return @errors << 'Invalid search parameters' unless params_valid?
+
+      sailings, rates, exchange_rates = MapReduceService.call
+      converted_rates = ConverterService.new(exchange_rates).to_usd(rates, sailings)
+      route_finder = RouteFinderService.new(sailings)
+
+      all_routes = route_finder.find_routes(params[:origin_port], params[:destination_port],
+                                            max_legs: params[:max_legs])
+
+      @search_result = if params[:strategy] == 'cheapest'
+                         find_cheapest_sailing(all_routes, converted_rates)
+                       elsif params[:strategy] == 'fastest'
+                         find_fastest_sailing(all_routes)
+                       else
+                         all_routes
+                       end
+
+      self
     end
 
     def success?
@@ -32,22 +43,6 @@ module Sailings
 
     def params_valid?
       params[:origin_port].present? && params[:destination_port].present?
-    end
-
-    def perform_search(sailings, converted_rates)
-      route_finder = SailingRouteFinderService.new(sailings)
-
-      all_routes = route_finder.find_route(params[:origin_port], params[:destination_port], max_legs: params[:max_legs])
-
-      @search_result = if params[:strategy] == 'cheapest'
-                         find_cheapest_sailing(all_routes, converted_rates)
-                       elsif params[:strategy] == 'fastest'
-                         find_fastest_sailing(all_routes)
-                       else
-                         all_routes # return all possible sailings if no strategy specified
-                       end
-
-      self
     end
 
     def find_cheapest_sailing(routes, converted_rates)
