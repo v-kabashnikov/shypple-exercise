@@ -2,47 +2,41 @@
 
 module Sailings
   class Search < BaseService
-    attr_reader :params, :errors, :search_result
+    attr_reader :origin_port, :destination_port, :max_legs, :strategy, :sailings, :rates, :exchange_rates
 
-    def initialize(params)
-      @params = params
-      @errors = []
-      @search_result = nil
+    def initialize(origin_port, destination_port, max_legs = nil, strategy = nil)
+      @origin_port = origin_port
+      @destination_port = destination_port
+      @max_legs = max_legs
+      @strategy = strategy
+      @sailings, @rates, @exchange_rates = MapReduceService.call
     end
 
     def call
-      return @errors << 'Invalid search parameters' unless params_valid?
+      return nil unless params_valid?
 
-      sailings, rates, exchange_rates = MapReduceService.call
-      converted_rates = ConverterService.new(exchange_rates).to_usd(rates, sailings)
-      route_finder = RouteFinderService.new(sailings)
+      return all_routes unless strategy
 
-      all_routes = route_finder.find_routes(params[:origin_port], params[:destination_port],
-                                            max_legs: params[:max_legs])
+      return find_cheapest_sailing(all_routes, converted_rates) if strategy == 'cheapest'
 
-      @search_result = if params[:strategy] == 'cheapest'
-                         find_cheapest_sailing(all_routes, converted_rates)
-                       elsif params[:strategy] == 'fastest'
-                         find_fastest_sailing(all_routes)
-                       else
-                         all_routes
-                       end
+      return find_fastest_sailing(all_routes) if strategy == 'fastest'
 
-      self
-    end
-
-    def success?
-      @errors.empty?
-    end
-
-    def result
-      @search_result
+      nil
     end
 
     private
 
+    def all_routes
+      RouteFinderService.new(sailings).find_routes(origin_port, destination_port,
+                                                   max_legs:)
+    end
+
+    def converted_rates
+      ConverterService.call(sailings, rates, exchange_rates)
+    end
+
     def params_valid?
-      params[:origin_port].present? && params[:destination_port].present?
+      origin_port.present? && destination_port.present?
     end
 
     def find_cheapest_sailing(routes, converted_rates)
