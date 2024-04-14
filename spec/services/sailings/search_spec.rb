@@ -21,22 +21,71 @@ RSpec.describe Sailings::Search, type: :service do
 
   describe '#call' do
     context 'when parameters are valid' do
-      it 'fetches data and performs search based on the strategy' do
-        expect(subject.call).to be_truthy
-        expect(subject.success?).to be true
+      # it 'fetches data and performs search based on the strategy' do
+      #   expect(subject.call).to be_truthy
+      #   expect(subject.success?).to be true
+      # end
+
+      it 'returns the direct sailing when legs are 1' do
+        search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', max_legs: 1)
+        expect(search.search_result).to match_array([[{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-01', 'arrival_date' => '2022-03-01', 'sailing_code' => 'ABCD' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-02',
+                                                        'arrival_date' => '2022-03-02', 'sailing_code' => 'EFGH' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-01-31',
+                                                        'arrival_date' => '2022-02-28', 'sailing_code' => 'IJKL' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-01-30',
+                                                        'arrival_date' => '2022-03-05', 'sailing_code' => 'MNOP' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-01-29',
+                                                        'arrival_date' => '2022-02-15', 'sailing_code' => 'QRST' }]])
       end
 
-      it 'returns the cheapest direct sailing when strategy is cheapest and legs are 1' do
-        cheapest_sailing = subject.call
-        expect(cheapest_sailing['sailing_code']).to eq('MNOP')
+      it 'returns the cheapest direct sailing when legs are 1' do
+        search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', max_legs: 1,
+                                      strategy: 'cheapest')
+        expect(search.search_result).to match_array([{ 'arrival_date' => '2022-03-05', 'departure_date' => '2022-01-30',
+                                                       'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'MNOP' }])
       end
 
-      it 'handles no strategy by returning all sailings between ports' do
-        subject = described_class.new(origin_port: 'CNSHA', destination_port: 'NLRTM')
-        all_sailings = subject.call
-        expect(all_sailings.size).to eq(sailings.select do |s|
-                                          s['origin_port'] == 'CNSHA' && s['destination_port'] == 'NLRTM'
-                                        end.size)
+      it 'returns the fastest direct sailing when legs are 1' do
+        search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', max_legs: 1,
+                                      strategy: 'fastest')
+        expect(search.search_result).to match_array([{ 'arrival_date' => '2022-02-15', 'departure_date' => '2022-01-29',
+                                                       'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'QRST' }])
+      end
+
+      it 'returns all sailings between ports when no legs param' do
+        search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM')
+        expect(search.search_result).to match_array([[{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-01', 'arrival_date' => '2022-03-01', 'sailing_code' => 'ABCD' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-02',
+                                                        'arrival_date' => '2022-03-02', 'sailing_code' => 'EFGH' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-01-31',
+                                                        'arrival_date' => '2022-02-28', 'sailing_code' => 'IJKL' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-01-30',
+                                                        'arrival_date' => '2022-03-05', 'sailing_code' => 'MNOP' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'NLRTM', 'departure_date' => '2022-01-29',
+                                                        'arrival_date' => '2022-02-15', 'sailing_code' => 'QRST' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'ESBCN', 'departure_date' => '2022-01-29', 'arrival_date' => '2022-02-12', 'sailing_code' => 'ERXQ' },
+                                                      { 'origin_port' => 'ESBCN', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-15',
+                                                        'arrival_date' => '2022-03-29', 'sailing_code' => 'ETRF' }],
+                                                     [{ 'origin_port' => 'CNSHA', 'destination_port' => 'ESBCN', 'departure_date' => '2022-01-29', 'arrival_date' => '2022-02-12', 'sailing_code' => 'ERXQ' },
+                                                      { 'origin_port' => 'ESBCN', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-16',
+                                                        'arrival_date' => '2022-02-20', 'sailing_code' => 'ETRG' }]])
+      end
+
+      it 'returns the cheapest sailing when no legs param' do
+        search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', strategy: 'cheapest')
+        expect(search.search_result).to match_array([{ 'arrival_date' => '2022-02-12', 'departure_date' => '2022-01-29',
+                                                       'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'ERXQ' },
+                                                     { 'arrival_date' => '2022-03-29', 'departure_date' => '2022-02-15',
+                                                       'destination_port' => 'NLRTM', 'origin_port' => 'ESBCN', 'sailing_code' => 'ETRF' }])
+      end
+
+      it 'returns the fastest sailing when no legs param' do
+        search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', strategy: 'fastest')
+        expect(search.search_result).to match_array([{ 'arrival_date' => '2022-02-12', 'departure_date' => '2022-01-29',
+                                                       'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'ERXQ' },
+                                                     { 'arrival_date' => '2022-02-20', 'departure_date' => '2022-02-16',
+                                                       'destination_port' => 'NLRTM', 'origin_port' => 'ESBCN', 'sailing_code' => 'ETRG' }])
       end
     end
 

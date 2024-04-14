@@ -35,40 +35,39 @@ module Sailings
     end
 
     def perform_search(sailings, converted_rates)
-      filtered_sailings = filter_sailings_by_ports(sailings, params[:origin_port], params[:destination_port])
+      route_finder = SailingRouteFinderService.new(sailings)
 
-      # Apply strategy and leg filtering
-      if params[:legs] == '1'
-        filtered_sailings = filtered_sailings.select do |s|
-          s['origin_port'] == params[:origin_port] && s['destination_port'] == params[:destination_port]
-        end
-      end
+      all_routes = route_finder.find_route(params[:origin_port], params[:destination_port], max_legs: params[:max_legs])
 
       @search_result = if params[:strategy] == 'cheapest'
-                         find_cheapest_sailing(filtered_sailings, converted_rates)
+                         find_cheapest_sailing(all_routes, converted_rates)
                        elsif params[:strategy] == 'fastest'
-                         find_fastest_sailing(filtered_sailings)
+                         find_fastest_sailing(all_routes)
                        else
-                         filtered_sailings # return all possible sailings if no strategy specified
+                         all_routes # return all possible sailings if no strategy specified
                        end
+
+      self
     end
 
-    def filter_sailings_by_ports(sailings, origin_port, destination_port)
-      sailings.select { |s| s['origin_port'] == origin_port && s['destination_port'] == destination_port }
+    def find_cheapest_sailing(routes, converted_rates)
+      routes.min_by do |route|
+        route.sum { |sailing| converted_rate_for_sailing(sailing, converted_rates) }
+      end
     end
 
-    def find_cheapest_sailing(sailings, converted_rates)
-      # Implement the logic to find the cheapest sailing considering the converted rates
-      sailings.min_by { |s| converted_rates.find { |r| r['sailing_code'] == s['sailing_code'] }['rate'].to_f }
+    def find_fastest_sailing(routes)
+      routes.min_by do |route|
+        route.sum { |sailing| calculate_sailing_duration(sailing) }
+      end
     end
 
-    def find_fastest_sailing(sailings)
-      # Implement the logic to find the fastest sailing based on duration or another metric
-      sailings.min_by { |s| calculate_sailing_duration(s) }
+    def converted_rate_for_sailing(sailing, converted_rates)
+      rate_info = converted_rates.find { |r| r['sailing_code'] == sailing['sailing_code'] }
+      rate_info ? rate_info['rate'].to_f : Float::INFINITY
     end
 
     def calculate_sailing_duration(sailing)
-      # Calculate duration based on sailing data, assuming `arrival_date` and `departure_date` are available
       (Date.parse(sailing['arrival_date']) - Date.parse(sailing['departure_date'])).to_i
     end
   end

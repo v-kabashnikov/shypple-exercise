@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-require 'json'
 
 RSpec.describe ConverterService, type: :service do
   let(:data) { JSON.parse(File.read('response.json')) }
