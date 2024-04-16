@@ -68,11 +68,21 @@ GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=fastest"
   }
 ]
 ```
+### Implementation details
+
+1. Implemented a GET endpoint that 
+accepts `origin_port`, `destination_port`, `strategy`, and `max_legs` as optional parameters.
+2. The `Search` service returns sailings as an array of legs based on input parameters. `max_legs` is currently used to distinguish between direct and indirect routes. In the future, it could easily limit search results to the desired amount of legs. The `strategy` parameter is used to retrieve only one result. The service is designed to serve all routes if no strategy is specified, which can be beneficial in the future. (Currently, this option is hidden from users by strategy presence validation.)
+3. `CurrencyConverter` service is designed to convert various currencies to one standard currency. Currently, I have used US dollars, but in the future, the base currency can be set via parameters, as calculations are very sensitive.
+4. `RouteFinder` Path finding algorithm is a crucial part of such applications. Since we don't have much data for now, I have decided to make it cleaner and more straightforward from a business perspective. Although this may not be the most efficient algorithm (depending on amount of data), this is a perfect candidate for benchmarking, to find an optimal solution based on data and upcoming business requirements.
+5. `MapReduceClient` is a simple wrapper for reading data from a file.
+
 ### Things to improve
 
-1. Change endpoint from GET to POST
-2. Move tests for specific tickets out from request unit tests to integration tests
-3. Use money library for currency convertation
-4. Extract all strategies from search service to separate classes
-5. Extract math actions from RouteFinder service into separate one
-6. Add serializers
+1. Change endpoint from GET to POST.
+2. Move tests for specific tickets out from request unit tests to integration tests.
+3. Use money library for `CurrencyConverter`.
+4. Extract all strategies from `Search` service to separate classes.
+5. Extract math actions from `RouteFinder` service into separate one.
+6. Extract `CurrencyConverter` from sails and don't pass sails there.
+7. Add serializers.
