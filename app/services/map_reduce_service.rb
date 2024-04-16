@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 
 class MapReduceService < BaseService
-  attr_reader :sailings, :rates, :exchange_rates
-
-  def initialize
-    @sailings = []
-    @rates = []
-    @exchange_rates = []
+  parameters do
   end
 
   def call

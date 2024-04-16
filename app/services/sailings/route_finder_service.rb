@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module Sailings
-  class RouteFinderService < BaseService
+  class RouteFinderService
     def initialize(sailings)
       @graph = build_graph(sailings)
     end
 
-    def find_routes(from, to, max_legs: nil)
+    def find_routes(from, to, max_legs)
       if max_legs == 1
         [@graph[from][to]].compact.flatten.map { |sailing| [sailing] }
       else

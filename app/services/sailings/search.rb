@@ -2,56 +2,56 @@
 
 module Sailings
   class Search < BaseService
-    attr_reader :origin_port, :destination_port, :max_legs, :strategy, :sailings, :rates, :exchange_rates
+    attr_reader :sailings, :rates, :exchange_rates
 
-    def initialize(origin_port, destination_port, max_legs = nil, strategy = nil)
-      @origin_port = origin_port
-      @destination_port = destination_port
-      @max_legs = max_legs
-      @strategy = strategy
-      @sailings, @rates, @exchange_rates = MapReduceService.call
+    parameters do
+      required(:origin_port).filled(:string)
+      required(:destination_port).filled(:string)
+      optional(:max_legs).maybe(:integer)
+      optional(:strategy).maybe(included_in?: %w[cheapest fastest])
     end
 
     def call
-      return nil unless params_valid?
-
-      return all_routes unless strategy
-
-      return find_cheapest_sailing(all_routes, converted_rates) if strategy == 'cheapest'
-
-      return find_fastest_sailing(all_routes) if strategy == 'fastest'
-
-      nil
+      fetch_data
+      Success(routes)
     end
 
     private
 
+    def routes
+      return find_cheapest_sailing if params[:strategy] == 'cheapest'
+      return find_fastest_sailing if params[:strategy] == 'fastest'
+
+      all_routes
+    end
+
+    def fetch_data
+      @sailings, @rates, @exchange_rates = MapReduceService.call
+    end
+
+    # TODO: refactor service and add Failure
     def all_routes
-      RouteFinderService.new(sailings).find_routes(origin_port, destination_port,
-                                                   max_legs:)
+      RouteFinderService.new(sailings).find_routes(params[:origin_port], params[:destination_port], params[:max_legs])
     end
 
     def converted_rates
-      ConverterService.call(sailings, rates, exchange_rates)
+      result = ConverterService.call(sailings:, rates:, exchange_rates:)
+      result.success? ? result.value! : Failure(result.failure)
     end
 
-    def params_valid?
-      origin_port.present? && destination_port.present?
-    end
-
-    def find_cheapest_sailing(routes, converted_rates)
-      routes.min_by do |route|
-        route.sum { |sailing| converted_rate_for_sailing(sailing, converted_rates) }
+    def find_cheapest_sailing
+      all_routes.min_by do |route|
+        route.sum { |sailing| converted_rate_for_sailing(sailing) }
       end
     end
 
-    def find_fastest_sailing(routes)
-      routes.min_by do |route|
+    def find_fastest_sailing
+      all_routes.min_by do |route|
         route.sum { |sailing| calculate_sailing_duration(sailing) }
       end
     end
 
-    def converted_rate_for_sailing(sailing, converted_rates)
+    def converted_rate_for_sailing(sailing)
       rate_info = converted_rates.find { |r| r['sailing_code'] == sailing['sailing_code'] }
       rate_info ? rate_info['rate'].to_f : Float::INFINITY
     end

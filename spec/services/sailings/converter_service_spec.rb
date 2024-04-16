@@ -8,11 +8,11 @@ RSpec.describe Sailings::ConverterService, type: :service do
   let(:sailings) { data['sailings'] }
   let(:rates) { data['rates'] }
 
-  subject { described_class.call(sailings, rates, exchange_rates) }
+  subject { described_class.call(sailings:, rates:, exchange_rates:) }
 
   describe '#to_usd' do
     it 'converts rates to USD' do
-      expect(subject).to match_array([
+      expect(subject.value!).to match_array([
                                        { 'sailing_code' => 'ABCD', 'rate' => '589.30' },
                                        { 'sailing_code' => 'EFGH', 'rate' => '1008.11' },
                                        { 'sailing_code' => 'IJKL', 'rate' => '828.65' },
