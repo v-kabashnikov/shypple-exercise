@@ -65,18 +65,15 @@ RSpec.describe Sailings::Search, type: :service do
 
       it 'returns the cheapest sailing when no legs param' do
         search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', strategy: 'cheapest')
-        expect(search.value!).to match_array([{ 'arrival_date' => '2022-02-12', 'departure_date' => '2022-01-29',
-                                                'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'ERXQ' },
-                                              { 'arrival_date' => '2022-03-29', 'departure_date' => '2022-02-15',
-                                                'destination_port' => 'NLRTM', 'origin_port' => 'ESBCN', 'sailing_code' => 'ETRF' }])
+        expect(search.value!).to match_array([{ 'arrival_date' => '2022-02-12', 'departure_date' => '2022-01-29', 'destination_port' => 'ESBCN', 'origin_port' => 'CNSHA', 'sailing_code' => 'ERXQ' },
+                                              { 'origin_port' => 'ESBCN', 'destination_port' => 'NLRTM', 'departure_date' => '2022-02-16',
+                                                'arrival_date' => '2022-02-20', 'sailing_code' => 'ETRG' }])
       end
 
       it 'returns the fastest sailing when no legs param' do
         search = described_class.call(origin_port: 'CNSHA', destination_port: 'NLRTM', strategy: 'fastest')
-        expect(search.value!).to match_array([{ 'arrival_date' => '2022-02-12', 'departure_date' => '2022-01-29',
-                                                'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'ERXQ' },
-                                              { 'arrival_date' => '2022-02-20', 'departure_date' => '2022-02-16',
-                                                'destination_port' => 'NLRTM', 'origin_port' => 'ESBCN', 'sailing_code' => 'ETRG' }])
+        expect(search.value!).to match_array([{ 'arrival_date' => '2022-02-15', 'departure_date' => '2022-01-29',
+                                                'destination_port' => 'NLRTM', 'origin_port' => 'CNSHA', 'sailing_code' => 'QRST' }])
       end
     end
 
