@@ -16,7 +16,8 @@ module Sailings
       sailings, rates, exchange_rates = data.values_at(:sailings, :rates, :exchange_rates)
       routes = yield find_routes(sailings)
       converted_rates = yield convert_sailing_rates(sailings, rates, exchange_rates)
-      apply_strategy(routes, converted_rates)
+      routes = apply_strategy(routes, converted_rates)
+      routes.any? ? Success(enrich_with_rates(routes, rates)) : Failure('No sailings found')
     end
 
     private
@@ -37,11 +38,11 @@ module Sailings
     def apply_strategy(routes, converted_rates)
       case params[:strategy]
       when 'cheapest'
-        Success(find_cheapest_sailing(routes, converted_rates))
+        find_cheapest_sailing(routes, converted_rates)
       when 'fastest'
-        Success(find_fastest_sailing(routes))
+        find_fastest_sailing(routes)
       else
-        Success(routes)
+        routes
       end
     end
 
@@ -64,6 +65,13 @@ module Sailings
 
     def calculate_sailing_duration(sailing)
       (Date.parse(sailing['arrival_date']) - Date.parse(sailing['departure_date'])).to_i
+    end
+
+    def enrich_with_rates(routes, rates)
+      routes.flatten.map do |sailing|
+        rate_info = rates.find { |r| r['sailing_code'] == sailing['sailing_code'] }
+        rate_info ? sailing.merge(rate_info.slice('rate', 'rate_currency')) : sailing
+      end
     end
   end
 end

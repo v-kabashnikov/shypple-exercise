@@ -24,7 +24,10 @@ module Sailings
         departure_date = sailing['departure_date']
         rate_value = rate['rate'].to_f
         currency = rate['rate_currency']
-        ex_rates = params[:exchange_rates][departure_date] || {}
+        ex_rates = params[:exchange_rates][departure_date]
+
+        return Failure('Exchange rates not found') unless ex_rates
+
         converted_value = convert_currency(rate_value, currency, ex_rates)
 
         next unless converted_value

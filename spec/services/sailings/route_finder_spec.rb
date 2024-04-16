@@ -142,7 +142,7 @@ RSpec.describe Sailings::RouteFinder, type: :service do
       end
     end
 
-    context 'when no routes exist' do
+    context 'when no routes exist because of date mismatch' do
       let(:max_legs) { nil }
       let(:sailings) do
         [{
@@ -167,6 +167,26 @@ RSpec.describe Sailings::RouteFinder, type: :service do
            'sailing_code' => 'ETRG'
          }]
       end
+
+      it 'returns an empty array' do
+        expect(subject).to be_success
+        expect(subject.value!).to eq([])
+      end
+    end
+
+    context 'when no routes exist because no such origin port' do
+      let(:max_legs) { nil }
+      let(:route_params) { { sailings:, origin_port: 'ILHFA', destination_port: 'NLRTM', max_legs: } }
+
+      it 'returns an empty array' do
+        expect(subject).to be_success
+        expect(subject.value!).to eq([])
+      end
+    end
+
+    context 'when no routes exist because no such destination port' do
+      let(:max_legs) { nil }
+      let(:route_params) { { sailings:, origin_port: 'CNSHA', destination_port: 'ILTLV', max_legs: } }
 
       it 'returns an empty array' do
         expect(subject).to be_success
