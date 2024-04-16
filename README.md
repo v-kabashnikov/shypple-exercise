@@ -1,15 +1,11 @@
 # Shypple Calculator Service
 
-## Live
+### Endpoints (links are directing to deployed app)
 
-* [App](https://shypple-excercise-702fb1829242.herokuapp.com)
-
-### API Endpoints
-
-* PLS-0001: Return the cheapest direct sailing between origin port & destination port
+* [PLS-0001](https://shypple-excercise-702fb1829242.herokuapp.com/api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest&max_legs=1): Return the cheapest direct sailing between origin port & destination port
 
 ```shell
-GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest&max_legs=1"
+GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest&max_legs=1
 
 [
   {
@@ -24,10 +20,10 @@ GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest&
 ]
 ```
 
-* WRT-0002: Return the cheapest sailing (direct or indirect)
+* [WRT-0002](https://shypple-excercise-702fb1829242.herokuapp.com/api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest): Return the cheapest sailing (direct or indirect)
 
 ```shell
-GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest"
+GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest
 
 [
   {
@@ -51,10 +47,10 @@ GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=cheapest"
 ]
 ```
 
-* TST-0003: Return the fastest sailing legs (direct or indirect)
+* [TST-0003](https://shypple-excercise-702fb1829242.herokuapp.com/api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=fastest): Return the fastest sailing legs (direct or indirect)
 
 ```shell
-GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=fastest"
+GET /api/v1/sailings?origin_port=CNSHA&destination_port=NLRTM&strategy=fastest
 
 [
   {
