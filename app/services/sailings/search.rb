@@ -22,16 +22,16 @@ module Sailings
     private
 
     def fetch_sailing_data
-      MapReduceService.call
+      MapReduceClient.call
     end
 
     def find_routes(sailings)
-      RouteFinderService.call(sailings:, origin_port: params[:origin_port],
-                              destination_port: params[:destination_port], max_legs: params[:max_legs])
+      RouteFinder.call(sailings:, origin_port: params[:origin_port],
+                       destination_port: params[:destination_port], max_legs: params[:max_legs])
     end
 
     def convert_sailing_rates(sailings, rates, exchange_rates)
-      ConverterService.call(sailings:, rates:, exchange_rates:)
+      CurrencyConverter.call(sailings:, rates:, exchange_rates:)
     end
 
     def apply_strategy(routes, converted_rates)

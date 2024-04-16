@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sailings
-  class RouteFinderService < BaseService
+  class RouteFinder < BaseService
     parameters do
       required(:sailings).filled(:array)
       required(:origin_port).filled(:string)

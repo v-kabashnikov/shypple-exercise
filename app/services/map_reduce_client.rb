@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class MapReduceService < BaseService
+class MapReduceClient < BaseService
   parameters do
   end
 

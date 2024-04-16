@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sailings
-  class ConverterService < BaseService
+  class CurrencyConverter < BaseService
     parameters do
       required(:sailings).filled(:array)
       required(:rates).filled(:array)

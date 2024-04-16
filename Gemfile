@@ -4,6 +4,8 @@ source 'https://rubygems.org'
 
 ruby '3.3.0'
 
+gem 'dry-monads', '~> 1.3'
+gem 'dry-validation', '~> 1.10'
 gem 'puma', '>= 5.0'
 gem 'rails', '~> 7.1.3', '>= 7.1.3.2'
 gem 'tzinfo-data', platforms: %i[windows jruby]

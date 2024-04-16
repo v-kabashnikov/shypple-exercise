@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Sailings::ConverterService, type: :service do
+RSpec.describe Sailings::CurrencyConverter, type: :service do
   let(:data) { JSON.parse(File.read('response.json')) }
   let(:exchange_rates) { data['exchange_rates'] }
   let(:sailings) { data['sailings'] }

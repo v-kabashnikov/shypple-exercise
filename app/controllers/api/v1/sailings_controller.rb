@@ -9,16 +9,14 @@ module Api
       before_action :validate_params, only: :index
 
       def index
-        raise NoSailings unless sailings
+        result = Sailings::Search.call(@valid_params)
 
-        render json: sailings, status: :ok
+        return render_error(result.failure, :bad_request) unless result.success?
+
+        render json: result.value!, status: :ok
       end
 
       private
-
-      def sailings
-        @sailings ||= Sailings::Search.call(params[:origin_port], params[:destination_port], params[:search_type])
-      end
 
       def validate_params
         validation = SailingSearchContract.new.call(params.to_unsafe_h)
